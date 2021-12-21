@@ -13,6 +13,7 @@ mod store;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "totp-rs", about = "A simple TOTP app written in Rust.")]
 enum Command {
+    #[structopt(about = "Add new profile to store")]
     Add {
         name: String,
         key: String,
@@ -21,9 +22,11 @@ enum Command {
         #[structopt(short = "l", long = "length", default_value = "6")]
         length: u32,
     },
+    #[structopt(about = "Generate code for specified profile")]
     Show {
         name: String,
     },
+    #[structopt(about = "Remove profile from store")]
     Remove {
         name: String,
     },
