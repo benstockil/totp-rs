@@ -1,6 +1,6 @@
 use crate::TotpProfile;
 use bincode;
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 use std::path::PathBuf;
 use std::{fs, io};
 
@@ -53,8 +53,8 @@ impl ProfileStore {
 
     pub fn add(&mut self, new_profile: TotpProfile) -> Result<(), ExistingProfileError> {
         let name = new_profile.name.clone();
-        if !self.profiles.contains_key(&name) {
-            self.profiles.insert(name, new_profile);
+        if let Entry::Vacant(e) = self.profiles.entry(name.clone()) {
+            e.insert(new_profile);
             Ok(())
         } else {
             Err(ExistingProfileError(name))
