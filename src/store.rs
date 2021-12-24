@@ -1,5 +1,4 @@
 use crate::TotpProfile;
-use bincode;
 use std::collections::{HashMap, hash_map::Entry};
 use std::path::PathBuf;
 use std::{fs, io};
