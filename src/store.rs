@@ -29,11 +29,13 @@ pub struct ProfileStore {
 }
 
 impl ProfileStore {
-    pub fn new(path: PathBuf) -> Self {
-        Self {
+    pub fn new(path: PathBuf) -> Result<Self, StoreSaveError> {
+        let store = Self {
             path,
             profiles: HashMap::new(),
-        }
+        };
+        store.write_to_disk()?;
+        Ok(store)
     }
 
     pub fn load(path: PathBuf) -> Result<Self, StoreLoadError> {
