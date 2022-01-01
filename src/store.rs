@@ -1,14 +1,14 @@
 use crate::TotpProfile;
 use std::collections::{HashMap, hash_map::Entry};
 use std::path::PathBuf;
-use std::{fs, io};
+use std::io;
 
 #[derive(Debug, thiserror::Error)]
 pub enum StoreLoadError {
     #[error("file could not be read")]
     CannotReadFile(#[from] io::Error),
     #[error("failed to deserialize data")]
-    CannotDeserialize(#[from] bincode::Error),
+    CannotDeserialize(#[from] csv::Error),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -16,7 +16,7 @@ pub enum StoreSaveError {
     #[error("file could not be written")]
     CannotWriteFile(#[from] io::Error),
     #[error("failed to serialize data")]
-    CannotSerialize(#[from] bincode::Error),
+    CannotSerialize(#[from] csv::Error),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -41,8 +41,12 @@ impl ProfileStore {
     }
 
     pub fn load(path: PathBuf) -> Result<Self, StoreLoadError> {
-        let file = fs::read(&path)?;
-        let profiles = bincode::deserialize(&file)?;
+        let mut reader = csv::Reader::from_path(&path)?;
+        let mut profiles = HashMap::new();
+        for profile in reader.deserialize() {
+            let profile: TotpProfile = profile?;
+            profiles.insert(profile.name.clone(), profile);
+        }
         Ok(Self { path, profiles })
     }
 
@@ -65,8 +69,11 @@ impl ProfileStore {
     }
 
     pub fn write_to_disk(&self) -> Result<(), StoreSaveError> {
-        let data = bincode::serialize(&self.profiles)?;
-        fs::write(&self.path, data)?;
+        let mut writer = csv::Writer::from_path(&self.path)?;
+        for profile in &self.profiles {
+            writer.serialize(profile)?;
+        }
+        writer.flush()?;
         Ok(())
     }
 }
