@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
                   Panic Info: \n{}", info);
     }));
 
-    let path: PathBuf = "./profilestore.bin".into();
+    let path: PathBuf = "./data/profilestore".into();
     let mut profiles = match path.is_file() {
         true => ProfileStore::load(path.clone())?,
         false => ProfileStore::new(path.clone())
