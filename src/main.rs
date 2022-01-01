@@ -1,3 +1,4 @@
+use anyhow::Context;
 use base32::Alphabet;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -32,46 +33,55 @@ enum Command {
     },
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
+    std::panic::set_hook(Box::new(|info| {
+        println!("Uh oh! The program ran into a problem and crashed.\n\
+                  Please submit an issue on GitHub (https://github.com/benstockil/totp-rs) \
+                  or contact ben@stockil.co.uk to report this issue.\n\n\
+                  Panic Info: \n{}", info);
+    }));
+
     let path: PathBuf = "./profilestore.bin".into();
-    let mut profiles = ProfileStore::load(path.clone()).unwrap_or(ProfileStore::new(path));
+    let mut profiles = match path.is_file() {
+        true => ProfileStore::load(path.clone())?,
+        false => ProfileStore::new(path.clone())
+    };
 
     let cmd = Command::from_args();
     match cmd {
         
         // Show OTP code for profile
         Command::Show { name } => {
-            if let Some(profile) = profiles.get(name) {
-                let time = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs();
-                println!("{}", profile.get_otp(time));
-            } else {
-                println!("TOTP profile not found.");
-            }
+            let profile = profiles.get(&name)
+                .with_context(|| format!("Could not find profile with name {}", name))?;
+            let time = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
+            println!("{}", profile.get_otp(time));
         }
 
         // Add profile to store
         Command::Add { name, key, time_step, length, } => {
             const ALPHABET: Alphabet = Alphabet::RFC4648 { padding: false };
-            let secret = base32::decode(ALPHABET, &*key).unwrap();
-            profiles
-                .add(TotpProfile {
-                    name,
-                    secret,
-                    time_step,
-                    digits: length,
-                })
-                .unwrap();
+            let secret = base32::decode(ALPHABET, &*key)
+                .with_context(|| format!("{} is not a valid base32 string", key))?;
+            profiles.add(TotpProfile {
+                name: name.clone(),
+                secret,
+                time_step,
+                digits: length,
+            })?;
         }
 
         // Remove profile from store
         Command::Remove { name } => {
-            profiles.remove(name);
+            profiles.remove(&name)
+                .with_context(|| format!("Could not file profile with name {}", name))?;
         }
     }
 
-    profiles.write_to_disk().unwrap();
-}
+    profiles.write_to_disk()?;
 
+    Ok(())
+}

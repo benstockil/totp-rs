@@ -1,5 +1,5 @@
 use crate::TotpProfile;
-use std::collections::{HashMap, hash_map::Entry};
+use std::collections::{hash_map::Entry, HashMap};
 use std::path::PathBuf;
 use std::io;
 
@@ -50,8 +50,8 @@ impl ProfileStore {
         Ok(Self { path, profiles })
     }
 
-    pub fn get(&self, name: String) -> Option<&TotpProfile> {
-        self.profiles.get(&name)
+    pub fn get(&self, name: &str) -> Option<&TotpProfile> {
+        self.profiles.get(name)
     }
 
     pub fn add(&mut self, new_profile: TotpProfile) -> Result<(), ExistingProfileError> {
@@ -64,8 +64,8 @@ impl ProfileStore {
         }
     }
 
-    pub fn remove(&mut self, name: String) -> Option<TotpProfile> {
-        self.profiles.remove(&name)
+    pub fn remove(&mut self, name: &str) -> Option<TotpProfile> {
+        self.profiles.remove(name)
     }
 
     pub fn write_to_disk(&self) -> Result<(), StoreSaveError> {
