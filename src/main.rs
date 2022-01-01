@@ -58,7 +58,7 @@ fn main() -> anyhow::Result<()> {
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs();
-            println!("{}", profile.get_otp(time));
+            println!("{:01$}", profile.get_otp(time), profile.digits as usize);
         }
 
         // Add profile to store
