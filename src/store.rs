@@ -4,12 +4,8 @@ use std::path::PathBuf;
 use std::io;
 
 #[derive(Debug, thiserror::Error)]
-pub enum StoreLoadError {
-    #[error("file could not be read")]
-    CannotReadFile(#[from] io::Error),
-    #[error("failed to deserialize data")]
-    CannotDeserialize(#[from] csv::Error),
-}
+#[error("failed to load store file")]
+pub struct StoreLoadError(#[from] csv::Error);
 
 #[derive(Debug, thiserror::Error)]
 pub enum StoreSaveError {
