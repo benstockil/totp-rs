@@ -37,7 +37,10 @@ impl ProfileStore {
     }
 
     pub fn load(path: PathBuf) -> Result<Self, StoreLoadError> {
-        let mut reader = csv::Reader::from_path(&path)?;
+        let mut reader = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .from_path(&path)?;
+
         let mut profiles = HashMap::new();
         for profile in reader.deserialize() {
             let profile: TotpProfile = profile?;
@@ -65,8 +68,11 @@ impl ProfileStore {
     }
 
     pub fn write_to_disk(&self) -> Result<(), StoreSaveError> {
-        let mut writer = csv::Writer::from_path(&self.path)?;
-        for profile in &self.profiles {
+        let mut writer = csv::WriterBuilder::new()
+            .has_headers(false)
+            .from_path(&self.path)?;
+
+        for profile in self.profiles.values() {
             writer.serialize(profile)?;
         }
         writer.flush()?;
