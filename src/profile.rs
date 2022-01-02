@@ -37,7 +37,7 @@ where D: serde::Deserializer<'de> {
     deserializer.deserialize_str(SecretVisitor).into()
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TotpProfile {
     pub name: String,
     #[serde(serialize_with = "serialize_secret")]
@@ -50,5 +50,34 @@ pub struct TotpProfile {
 impl TotpProfile {
     pub fn get_otp(&self, time: u64) -> u32 {
         totp(&self.secret, time, self.time_step, self.digits)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_test::{assert_tokens, Token};
+
+    #[test]
+    fn serde_works() {
+        let test_profile = TotpProfile {
+            name: "Test".into(),
+            secret: [152, 8, 22, 45, 66, 87, 253].into(),
+            time_step: 140,
+            digits: 15,
+        };
+
+        assert_tokens(&test_profile, &[
+            Token::Struct { name: "TotpProfile", len: 4 },
+            Token::Str("name"),
+            Token::Str("Test"),
+            Token::Str("secret"),
+            Token::Str("TAEBMLKCK76Q"), 
+            Token::Str("time_step"),
+            Token::U64(140),
+            Token::Str("digits"),
+            Token::U32(15),
+            Token::StructEnd,
+        ])
     }
 }
