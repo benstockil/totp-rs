@@ -276,6 +276,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_test"
+version = "1.0.133"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8537872f576ea4a3a38ef8f8e317effb067964b526f2fa64cc3d27e89cb52d3"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "sha-1"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -372,6 +381,7 @@ dependencies = [
  "csv",
  "hmac",
  "serde",
+ "serde_test",
  "sha-1",
  "structopt",
  "thiserror",
