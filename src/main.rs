@@ -1,5 +1,6 @@
-use anyhow::Context;
+use anyhow::{Context, ensure};
 use base32::Alphabet;
+use std::io::{Write, stdin, stdout};
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use structopt::StructOpt;
@@ -41,11 +42,23 @@ fn main() -> anyhow::Result<()> {
                   Panic Info: \n{}", info);
     }));
 
+    print!("Password: ");
+    stdout().flush().unwrap();
+    let mut password = String::new();
+    stdin().read_line(&mut password).unwrap();
+
+    ensure!(password.len() < 32, "password is too long");
+    let key = {
+        let mut bytes = password.into_bytes();
+        bytes.resize(32, 0u8);
+        bytes.try_into().unwrap()
+    };
+
     let path: PathBuf = "./data/profilestore".into();
     let mut profiles = match path.is_file() {
-        true => ProfileStore::load(path.clone())?,
+        true => ProfileStore::load(path.clone(), key)?,
         false => {
-            let store = ProfileStore::new(path.clone())?;
+            let store = ProfileStore::new(path.clone(), key)?;
             store.write_to_disk()?;
             store
         }
