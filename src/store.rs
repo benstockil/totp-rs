@@ -34,7 +34,6 @@ impl ProfileStore {
             path,
             profiles: HashMap::new(),
         };
-        store.write_to_disk()?;
         Ok(store)
     }
 

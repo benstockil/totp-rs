@@ -44,7 +44,11 @@ fn main() -> anyhow::Result<()> {
     let path: PathBuf = "./data/profilestore".into();
     let mut profiles = match path.is_file() {
         true => ProfileStore::load(path.clone())?,
-        false => ProfileStore::new(path.clone())?,
+        false => {
+            let store = ProfileStore::new(path.clone())?;
+            store.write_to_disk()?;
+            store
+        }
     };
 
     let cmd = Command::from_args();
